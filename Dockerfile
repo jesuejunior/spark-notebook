@@ -57,10 +57,10 @@ ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${py4j_versio
     SPARK_JARS="${SPARK_HOME}/jars/"
 
 ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.0/hadoop-aws-3.3.0.jar ${SPARK_JARS}
-ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.11.906/aws-java-sdk-1.11.906.jar ${SPARK_JARS}
+ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.11.908/aws-java-sdk-1.11.908.jar ${SPARK_JARS}
 ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop2.jar ${SPARK_JARS}
+ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/io/netty/netty-all/4.1.54.Final/netty-all-4.1.54.Final.jar ${SPARK_JARS}
-
 
 # USER $NB_UID
 
