@@ -90,16 +90,3 @@ RUN set -ex \
             \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
             \) -exec rm -rf '{}' +
 
-
-COPY . /opt/app
-WORKDIR /opt/app
-
-RUN set -ex \
-    && cd /opt/app \
-    && pipenv --site-packages install --dev --system --ignore-pipfile \
-    && chmod +x scripts/cluster_bootstrap
-
-
-EXPOSE 8888 4040
-
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--allow-root"]
