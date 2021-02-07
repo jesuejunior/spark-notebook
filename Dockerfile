@@ -1,5 +1,5 @@
-FROM ubuntu:focal
-
+# FROM ubuntu:focal
+FROM python:3.8-buster
 LABEL maintainer="Jesue Junior <jesuesousa@gmail.com>"
 ARG NB_USER="jesue"
 ARG NB_UID="1000"
@@ -25,14 +25,16 @@ ENV APACHE_SPARK_VERSION="${spark_version}" \
     HADOOP_VERSION="${hadoop_version}"
 
 RUN buildDeps="build-essential wget bzip2 ca-certificates locales fonts-liberation libsm6 libxext-dev git ffmpeg unzip \
-    openjdk-${openjdk_version}-jre-headless ca-certificates-java python3 python3-pip python3-dev" \
+    openjdk-${openjdk_version}-jre-headless ca-certificates-java" \
     && apt-get update \
-    && apt-get install -y software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get install -yq software-properties-common \
+    && apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main' \
+    && apt-get update \
+    # && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get install -yq $buildDeps --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -s `which python3` /usr/bin/python \
-    && ln -s `which pip3` /usr/bin/pip
+    && rm -rf /var/lib/apt/lists/*
+    # && ln -snf `which python3` /usr/bin/python \
+    # && ln -snf `which pip3` /usr/bin/pip
 
 
 # Spark installation
@@ -40,10 +42,10 @@ WORKDIR /tmp
 # Using the preferred mirror to download Spark
 # hadolint ignore=SC2046
 RUN wget -q $(wget -qO- https://www.apache.org/dyn/closer.lua/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz\?as_json | \
-    python -c "import sys, json; content=json.load(sys.stdin); print(content['preferred']+content['path_info'])") && \
-    echo "${spark_checksum} *spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" | sha512sum -c - && \
-    tar xzf "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -C /usr/local --owner root --group root --no-same-owner && \
-    rm "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
+    python -c "import sys, json; content=json.load(sys.stdin); print(content['preferred']+content['path_info'])") \
+    && echo "${spark_checksum} *spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" | sha512sum -c - \
+    && tar xzf "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -C /usr/local --owner root --group root --no-same-owner \
+    && rm "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
 
 WORKDIR /usr/local
@@ -59,13 +61,13 @@ ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${py4j_versio
 ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.0/hadoop-aws-3.3.0.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.11.908/aws-java-sdk-1.11.908.jar ${SPARK_JARS}
 ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop2.jar ${SPARK_JARS}
-ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar ${SPARK_JARS}
+ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest_2.12.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/io/netty/netty-all/4.1.54.Final/netty-all-4.1.54.Final.jar ${SPARK_JARS}
 
 # USER $NB_UID
 
 RUN set -ex \
-    && pip3 install pipenv==2020.11.15 jupyterlab==2.2.9 pyarrow==2.0.0  widgetsnbextension bokeh ipywidgets \
+    && pip3 install pipenv==2020.11.15 jupyterlab==3.0.7 pyarrow==3.0.0 jupytext widgetsnbextension bokeh ipywidgets \
     matplotlib==3.3.3 \
     # && apt-get purge -y --auto-remove $buildDeps \
     && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
