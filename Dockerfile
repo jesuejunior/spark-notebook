@@ -1,5 +1,5 @@
-# FROM ubuntu:focal
-FROM python:3.8-buster
+FROM ubuntu:21.04
+
 LABEL maintainer="Jesue Junior <jesuesousa@gmail.com>"
 ARG NB_USER="jesue"
 ARG NB_UID="1000"
@@ -15,9 +15,9 @@ ENV DEBIAN_FRONTEND noninteractive
 # Spark dependencies
 # Default values can be overridden at build time
 # (ARGS are in lower case to distinguish them from ENV)
-ARG spark_version="3.0.1"
+ARG spark_version="3.1.2"
 ARG hadoop_version="3.2"
-ARG spark_checksum="E8B47C5B658E0FBC1E57EEA06262649D8418AE2B2765E44DA53AAF50094877D17297CC5F0B9B35DF2CEEF830F19AA31D7E56EAD950BBE7F8830D6874F88CFC3C"
+ARG spark_checksum="2385CB772F21B014CE2ABD6B8F5E815721580D6E8BC42A26D70BBCDDA8D303D886A6F12B36D40F6971B5547B70FAE62B5A96146F0421CB93D4E51491308EF5D5"
 ARG py4j_version="0.10.9"
 ARG openjdk_version="8"
 
@@ -30,12 +30,10 @@ RUN buildDeps="build-essential wget bzip2 ca-certificates locales fonts-liberati
     && apt-get install -yq software-properties-common \
     && apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main' \
     && apt-get update \
+    && apt-get install -y software-properties-common \
     # && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get install -yq $buildDeps --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
-    # && ln -snf `which python3` /usr/bin/python \
-    # && ln -snf `which pip3` /usr/bin/pip
-
 
 # Spark installation
 WORKDIR /tmp
@@ -61,13 +59,14 @@ ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${py4j_versio
 ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.0/hadoop-aws-3.3.0.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.11.908/aws-java-sdk-1.11.908.jar ${SPARK_JARS}
 ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop2.jar ${SPARK_JARS}
-# ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest_2.12.jar ${SPARK_JARS}
+# ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar ${SPARK_JARS}
+ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest_2.12.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/io/netty/netty-all/4.1.54.Final/netty-all-4.1.54.Final.jar ${SPARK_JARS}
 
 # USER $NB_UID
 
 RUN set -ex \
-    && pip3 install pipenv==2020.11.15 jupyterlab==3.0.7 pyarrow==3.0.0 jupytext widgetsnbextension bokeh ipywidgets \
+    && pip3 install -U pipenv==2020.11.15 poetry jupyterlab==3.1.4 pyarrow==5.0.0 pyspark==3.1.2 pandas>=1.3.1 widgetsnbextension bokeh ipywidgets \
     matplotlib==3.3.3 \
     # && apt-get purge -y --auto-remove $buildDeps \
     && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
@@ -84,7 +83,7 @@ RUN set -ex \
     # && npm cache clean --force \
     # && rm -rf "/home/${NB_USER}/.cache/yarn" \
     # && rm -rf "/home/${NB_USER}/.node-gyp" \
-    && rm /usr/local/spark/jars/netty-all-4.1.47.Final.jar \
+    # && rm /usr/local/spark/jars/netty-all-4.1.47.Final.jar \
     && find /usr/local -depth \
         \( \
             \( -type d -a \( -name test -o -name tests \) \) \
