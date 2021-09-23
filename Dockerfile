@@ -25,7 +25,7 @@ ENV APACHE_SPARK_VERSION="${spark_version}" \
     HADOOP_VERSION="${hadoop_version}"
 
 RUN buildDeps="build-essential wget bzip2 ca-certificates locales fonts-liberation libsm6 libxext-dev git ffmpeg unzip \
-    openjdk-${openjdk_version}-jre-headless ca-certificates-java" \
+    openjdk-${openjdk_version}-jre-headless ca-certificates-java nodejs npm" \
     && apt-get update \
     && apt-get install -yq software-properties-common \
     && apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main' \
@@ -58,29 +58,22 @@ ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${py4j_versio
 
 ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.0/hadoop-aws-3.3.0.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.11.908/aws-java-sdk-1.11.908.jar ${SPARK_JARS}
-ADD https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop2.jar ${SPARK_JARS}
-# ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar ${SPARK_JARS}
+ADD https://repo1.maven.org/maven2/com/google/cloud/bigdataoss/gcs-connector/hadoop3-2.2.2/gcs-connector-hadoop3-2.2.2-shaded.jar ${SPARK_JARS}
 ADD https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest_2.12.jar ${SPARK_JARS}
 ADD https://repo1.maven.org/maven2/io/netty/netty-all/4.1.54.Final/netty-all-4.1.54.Final.jar ${SPARK_JARS}
 
 # USER $NB_UID
 
 RUN set -ex \
-    && pip3 install -U pipenv==2020.11.15 poetry jupyterlab==3.1.4 pyarrow==5.0.0 pyspark==3.1.2 pandas>=1.3.1 widgetsnbextension bokeh ipywidgets \
+    && pip3 install -U pipenv==2020.11.15 poetry jupyterlab>=3.1.4 pyarrow==5.0.0 pyspark==3.1.2 pandas>=1.3.3 widgetsnbextension ipywidgets>=7.6 plotly \
     matplotlib==3.3.3 \
     # && apt-get purge -y --auto-remove $buildDeps \
     && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen \
-    # Also activate ipywidgets extension for JupyterLab
-    # Check this URL for most recent compatibilities
-    # https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
-    # && jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build \
-    # && jupyter labextension install @bokeh/jupyter_bokeh@^2.0.0 --no-build \
-    # && jupyter labextension install jupyter-matplotlib@^0.7.2 --no-build \
-    # && jupyter lab build -y \
-    # && jupyter lab clean -y \
-    # && npm cache clean --force \
+    && jupyter labextension install jupyterlab-plotly plotlywidget @jupyter-widgets/jupyterlab-manager \
+    && jupyter lab clean -y \
+    && npm cache clean --force \
     # && rm -rf "/home/${NB_USER}/.cache/yarn" \
     # && rm -rf "/home/${NB_USER}/.node-gyp" \
     # && rm /usr/local/spark/jars/netty-all-4.1.47.Final.jar \
