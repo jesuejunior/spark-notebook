@@ -25,9 +25,10 @@ ENV APACHE_SPARK_VERSION="${spark_version}" \
     HADOOP_VERSION="${hadoop_version}"
 
 RUN buildDeps="build-essential wget bzip2 ca-certificates locales fonts-liberation libsm6 libxext-dev git ffmpeg unzip \
-    openjdk-${openjdk_version}-jre-headless ca-certificates-java nodejs npm" \
+    openjdk-${openjdk_version}-jre-headless ca-certificates-java nodejs npm python3 python3-pip" \
     && apt-get update \
-    && apt-get install -yq software-properties-common \
+    && apt-get install -yq software-properties-common gpg \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys AA8E81B4331F7F50 112695A0E562B32A \
     && apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main' \
     && apt-get update \
     && apt-get install -y software-properties-common \
@@ -40,7 +41,7 @@ WORKDIR /tmp
 # Using the preferred mirror to download Spark
 # hadolint ignore=SC2046
 RUN wget -q $(wget -qO- https://www.apache.org/dyn/closer.lua/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz\?as_json | \
-    python -c "import sys, json; content=json.load(sys.stdin); print(content['preferred']+content['path_info'])") \
+    python3 -c "import sys, json; content=json.load(sys.stdin); print(content['preferred']+content['path_info'])") \
     && echo "${spark_checksum} *spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" | sha512sum -c - \
     && tar xzf "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -C /usr/local --owner root --group root --no-same-owner \
     && rm "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
