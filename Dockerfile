@@ -66,7 +66,7 @@ ADD https://repo1.maven.org/maven2/io/netty/netty-all/4.1.54.Final/netty-all-4.1
 # USER $NB_UID
 
 RUN set -ex \
-    && pip3 install -U pipenv==2020.11.15 poetry jupyterlab>=3.1.4 pyarrow==5.0.0 pyspark==3.1.2 pandas>=1.3.3 widgetsnbextension ipywidgets>=7.6 plotly \
+    && pip3 install -U pipenv==2020.11.15 poetry jupyterlab>=3.2.4 pyarrow==5.0.0 pyspark==3.1.2 pandas>=1.3.3 widgetsnbextension ipywidgets>=7.6 plotly \
     matplotlib==3.3.3 \
     # && apt-get purge -y --auto-remove $buildDeps \
     && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
